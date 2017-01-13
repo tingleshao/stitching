@@ -1,4 +1,7 @@
 import cv2
+import imutils
+import numpy as np
+
 
 def stitch_images(images, ratio =0.75, reprojThresh=4.0, showMatches=False):
     print "stitching..."
@@ -10,6 +13,10 @@ def stitch_images(images, ratio =0.75, reprojThresh=4.0, showMatches=False):
         return None
     (matches, H, status) = M
     result = cv2.warpPerspective(imageA, H, (imageA.shape[1] + imageB.shape[1], imageA.shape[0]))
+    print str(imageA.shape)
+    print str(imageB.shape)
+    print "shape: " + str(result.shape)
+
     result[0:imageB.shape[0], 0:imageB.shape[1]] = imageB
     if showMatches:
         vis = draw_matches(imageA, imageB, kpsA, kpsB, matches, status)
@@ -50,18 +57,16 @@ def draw_matches(imageA, imageB, kpsA, kpsB, matches, status):
     for ((trainIdx, queryIdx), s) in zip(matches, status):
         if s == 1:
             ptA = (int(kpsA[queryIdx][0]), int(kpsA[queryIdx][1]))
-            ptB = (int(kpsB[trainIdx][0] + wA, int(kpsB[trainIdx][1])))
+            ptB = (int(kpsB[trainIdx][0]) + wA, int(kpsB[trainIdx][1]))
             cv2.line(vis, ptA, ptB, (0, 255, 0), 1)
     return vis
 
 
-
 def main():
-    imageA = cv2.imread("first")
-    imageB = cv2.imread("second")
-    iamgeA = imutils.reisze(imageA, width=400)
+    imageA = cv2.imread("first.jpg")
+    imageB = cv2.imread("second.jpg")
+    imageA = imutils.resize(imageA, width=400)
     imageB = imutils.resize(imageB, width=400)
-
     (result, vis) = stitch_images([imageA, imageB], showMatches=True)
     cv2.imshow("Image A", imageA)
     cv2.imshow("Image B", imageB)
