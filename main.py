@@ -1,6 +1,8 @@
 import cv2
 import imutils
 import numpy as np
+import argparse
+
 
 #TODO: stitch all images
 #TODO: try using a bundle adjustment method and see the differences
@@ -12,7 +14,8 @@ def stitch_all_images(images, ratio=0.75, reprojThresh=4.0, showMatches=False):
     num_of_pairs = len(images) / 2
     results = []
     for i in xrange(num_of_pairs):
-        (imageB, imageA) = images
+        imageB = images[i*2+1]
+        imageA = images[i*2]
         (kpsA, featuresA) = detect_and_describe(imageA)
         (kpsB, featuresB) = detect_and_describe(imageB)
         M = match_key_points(kpsA, kpsB, featuresA, featuresB, ratio, reprojThresh)
@@ -86,9 +89,15 @@ def draw_matches(imageA, imageB, kpsA, kpsB, matches, status):
 
 
 def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-m", help="""mode""", type=int)
+    args = parser.parse_args()
+    test_single_pair = False
+    if args.m == 0:
+        test_single_pair = True
     if test_single_pair:
-        imageA = cv2.imread("first.jpg")
-        imageB = cv2.imread("second.jpg")
+        imageA = cv2.imread("images/first.jpg")
+        imageB = cv2.imread("images/second.jpg")
         imageA = imutils.resize(imageA, width=400)
         imageB = imutils.resize(imageB, width=400)
         (result, vis) = stitch_images([imageA, imageB], showMatches=True)
@@ -98,7 +107,16 @@ def main():
         cv2.imshow("Result", result)
         cv2.waitKey(0)
     else:
-        
+        images = []
+        for i in xrange(18):
+            file_name = "images/mcam_" + str(i+1) + "_scale_2.jpg"
+            curr_image = cv2.imread(file_name)
+            curr_image = imutils.resize(curr_image, width=400)
+            images.append(curr_image)
+        (results, vis) = stitch_all_images(images, showMatches=False)
+        for i in xrange(len(results)):
+            cv2.imshow("Result", result)
+        cv2.waitKey(0)
 
 
 if __name__  == "__main__":
