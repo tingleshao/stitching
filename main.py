@@ -113,9 +113,10 @@ def main():
             curr_image = cv2.imread(file_name)
             curr_image = imutils.resize(curr_image, width=400)
             images.append(curr_image)
-        (results, vis) = stitch_all_images(images, showMatches=False)
+        results = stitch_all_images(images, showMatches=False)
         for i in xrange(len(results)):
-            cv2.imshow("Result", result)
+            print i
+            cv2.imshow("Result" + str(i), results[i])
         cv2.waitKey(0)
 
 
