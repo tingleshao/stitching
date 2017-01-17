@@ -3,13 +3,28 @@ import imutils
 import numpy as np
 
 #TODO: stitch all images
-
+#TODO: try using a bundle adjustment method and see the differences
 
 
 def stitch_all_images(images, ratio=0.75, reprojThresh=4.0, showMatches=False):
-    # images a matrix where each row is a pair of images?
+    # images a list where each 2 is a pair of images?
     print "stitching all..."
-    ()
+    num_of_pairs = len(images) / 2
+    results = []
+    for i in xrange(num_of_pairs):
+        (imageB, imageA) = images
+        (kpsA, featuresA) = detect_and_describe(imageA)
+        (kpsB, featuresB) = detect_and_describe(imageB)
+        M = match_key_points(kpsA, kpsB, featuresA, featuresB, ratio, reprojThresh)
+        if M is None:
+            return None
+        (matches, H, status) = M
+        result = cv2.warpPerspective(imageA, H, (imageA.shape[1] + imageB.shape[1], imageA.shape[0]))
+        result[0:imageB.shape[0], 0:imageB.shape[1]] = imageB
+        if showMatches:
+            vis = draw_matches(imageA, imageB, kpsA, kpsB, matches, status)
+        results.append(result)
+    return results
 
 
 def stitch_images(images, ratio=0.75, reprojThresh=4.0, showMatches=False):
@@ -71,16 +86,19 @@ def draw_matches(imageA, imageB, kpsA, kpsB, matches, status):
 
 
 def main():
-    imageA = cv2.imread("first.jpg")
-    imageB = cv2.imread("second.jpg")
-    imageA = imutils.resize(imageA, width=400)
-    imageB = imutils.resize(imageB, width=400)
-    (result, vis) = stitch_images([imageA, imageB], showMatches=True)
-    cv2.imshow("Image A", imageA)
-    cv2.imshow("Image B", imageB)
-    cv2.imshow("Keypoint Matches", vis)
-    cv2.imshow("Result", result)
-    cv2.waitKey(0)
+    if test_single_pair:
+        imageA = cv2.imread("first.jpg")
+        imageB = cv2.imread("second.jpg")
+        imageA = imutils.resize(imageA, width=400)
+        imageB = imutils.resize(imageB, width=400)
+        (result, vis) = stitch_images([imageA, imageB], showMatches=True)
+        cv2.imshow("Image A", imageA)
+        cv2.imshow("Image B", imageB)
+        cv2.imshow("Keypoint Matches", vis)
+        cv2.imshow("Result", result)
+        cv2.waitKey(0)
+    else:
+        
 
 
 if __name__  == "__main__":
