@@ -4,12 +4,57 @@ import numpy as np
 import argparse
 
 
-#TODO: stitch all images
 #TODO: try using a bundle adjustment method and see the differences
 
 
+def stitch_all_images2(images, width, height, ratio=0.75, reprojThresh=4.0, showMatches=False):
+    print "stitching all..."
+    num_of_images = len(images)
+    rows = []
+    for j in xrange(height):
+        row_images = images[j*width:(j+1)*width]
+        result = None
+        for i in xrange(width-1):
+            imageB = row_images[i+1]
+            if i == 0:
+                imageA = row_images[i] # todo:later change it to existing stitched images
+            else:
+                imageA = result
+            (kpsA, featuresA) = detect_and_describe(imageA)
+            (kpsB, featuresB) = detect_and_describe(imageB)
+            M = match_key_points(kpsA, kpsB, featuresA, featuresB, ratio, reprojThresh)
+            if M is None:
+                return None
+            (matches, H, status) = M
+            new_result = cv2.warpPerspective(imageA, H, (imageA.shape[1] + imageB.shape[1], imageA.shape[0]))
+            new_result[0:imageB.shape[0], 0:imageB.shape[1]] = imageB
+            if showMatches:
+                vis = draw_matches(imageA, imageB, kpsA, kpsB, matches, status)
+            result = new_result
+        rows.append(result)
+    print "len rowsA; " + str(len(rows))
+    result = None
+    for j in xrange(height-1):
+        imageB = rows[j+1]
+        imageA = rows[j]
+        (kpsA, featuresA) = detect_and_describe(imageA)
+        (kpsB, featuresB) = detect_and_describe(imageB)
+        M = match_key_points(kpsA, kpsB, featuresA, featuresB, ratio, reprojThresh)
+        if M is None:
+            return None
+        (matches, H, status ) = M
+        print " image A shape 1: " + str(imageA.shape[1])
+        print " image A shape 0 + image B shape 0: "  + str(imageA.shape[0]) + "  " + str(imageB.shape[0])
+        print " image B shape 1: " + str(imageB.shape[1])
+        new_result = cv2.warpPerspective(imageA, H, (imageA.shape[1], imageA.shape[0]+imageB.shape[0]))
+        new_result[0:imageB.shape[0], 0:imageB.shape[1]] = imageB
+        if showMatches:
+            vis = draw_matches(imageA, imageB, kpsA, kpsB, matches, status)
+        result = new_result
+    return result
+
+
 def stitch_all_images(images, ratio=0.75, reprojThresh=4.0, showMatches=False):
-    # images a list where each 2 is a pair of images?
     print "stitching all..."
     num_of_pairs = len(images) / 2
     results = []
@@ -93,8 +138,11 @@ def main():
     parser.add_argument("-m", help="""mode""", type=int)
     args = parser.parse_args()
     test_single_pair = False
+    test_every_pair = False
     if args.m == 0:
         test_single_pair = True
+    elif args.m == 1:
+        test_every_pair = True
     if test_single_pair:
         imageA = cv2.imread("images/first.jpg")
         imageB = cv2.imread("images/second.jpg")
@@ -106,7 +154,7 @@ def main():
         cv2.imshow("Keypoint Matches", vis)
         cv2.imshow("Result", result)
         cv2.waitKey(0)
-    else:
+    elif test_every_pair:
         images = []
         for i in xrange(18):
             file_name = "images/mcam_" + str(i+1) + "_scale_2.jpg"
@@ -117,6 +165,18 @@ def main():
         for i in xrange(len(results)):
             print i
             cv2.imshow("Result" + str(i), results[i])
+        cv2.waitKey(0)
+    else:
+        images = []
+        for i in xrange(18):
+            file_name = "images/mcam_" + str(i+1) + "_scale_2.jpg"
+            curr_image = cv2.imread(file_name)
+            curr_image = imutils.resize(curr_image, width=400)
+            images.append(curr_image)
+        result = stitch_all_images2(images, 6, 3, showMatches=False)
+    #    for i in xrange(len(results)):
+    #        print i
+        cv2.imshow("Result" + str(i), result)
         cv2.waitKey(0)
 
 
