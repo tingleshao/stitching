@@ -2,8 +2,17 @@ import cv2
 import imutils
 import numpy as np
 
+#TODO: stitch all images
 
-def stitch_images(images, ratio =0.75, reprojThresh=4.0, showMatches=False):
+
+
+def stitch_all_images(images, ratio=0.75, reprojThresh=4.0, showMatches=False):
+    # images a matrix where each row is a pair of images?
+    print "stitching all..."
+    ()
+
+
+def stitch_images(images, ratio=0.75, reprojThresh=4.0, showMatches=False):
     print "stitching..."
     (imageB, imageA) = images
     (kpsA, featuresA) = detect_and_describe(imageA)
@@ -16,7 +25,6 @@ def stitch_images(images, ratio =0.75, reprojThresh=4.0, showMatches=False):
     print str(imageA.shape)
     print str(imageB.shape)
     print "shape: " + str(result.shape)
-
     result[0:imageB.shape[0], 0:imageB.shape[1]] = imageB
     if showMatches:
         vis = draw_matches(imageA, imageB, kpsA, kpsB, matches, status)
