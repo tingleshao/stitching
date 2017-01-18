@@ -7,7 +7,7 @@ import argparse
 #TODO: try using a bundle adjustment method and see the differences
 
 
-def stitch_all_images2(images, width, height, ratio=0.75, reprojThresh=4.0, showMatches=False):
+def stitch_all_images(images, width, height, ratio=0.75, reprojThresh=4.0, showMatches=False):
     print "stitching all..."
     num_of_images = len(images)
     rows = []
@@ -52,27 +52,6 @@ def stitch_all_images2(images, width, height, ratio=0.75, reprojThresh=4.0, show
             vis = draw_matches(imageA, imageB, kpsA, kpsB, matches, status)
         result = new_result
     return result
-
-
-def stitch_all_images(images, ratio=0.75, reprojThresh=4.0, showMatches=False):
-    print "stitching all..."
-    num_of_pairs = len(images) / 2
-    results = []
-    for i in xrange(num_of_pairs):
-        imageB = images[i*2+1]
-        imageA = images[i*2]
-        (kpsA, featuresA) = detect_and_describe(imageA)
-        (kpsB, featuresB) = detect_and_describe(imageB)
-        M = match_key_points(kpsA, kpsB, featuresA, featuresB, ratio, reprojThresh)
-        if M is None:
-            return None
-        (matches, H, status) = M
-        result = cv2.warpPerspective(imageA, H, (imageA.shape[1] + imageB.shape[1], imageA.shape[0]))
-        result[0:imageB.shape[0], 0:imageB.shape[1]] = imageB
-        if showMatches:
-            vis = draw_matches(imageA, imageB, kpsA, kpsB, matches, status)
-        results.append(result)
-    return results
 
 
 def stitch_images(images, ratio=0.75, reprojThresh=4.0, showMatches=False):
@@ -154,18 +133,6 @@ def main():
         cv2.imshow("Keypoint Matches", vis)
         cv2.imshow("Result", result)
         cv2.waitKey(0)
-    elif test_every_pair:
-        images = []
-        for i in xrange(18):
-            file_name = "images/mcam_" + str(i+1) + "_scale_2.jpg"
-            curr_image = cv2.imread(file_name)
-            curr_image = imutils.resize(curr_image, width=400)
-            images.append(curr_image)
-        results = stitch_all_images(images, showMatches=False)
-        for i in xrange(len(results)):
-            print i
-            cv2.imshow("Result" + str(i), results[i])
-        cv2.waitKey(0)
     else:
         images = []
         for i in xrange(18):
@@ -173,7 +140,7 @@ def main():
             curr_image = cv2.imread(file_name)
             curr_image = imutils.resize(curr_image, width=400)
             images.append(curr_image)
-        result = stitch_all_images2(images, 6, 3, showMatches=False)
+        result = stitch_all_images(images, 6, 3, showMatches=False)
     #    for i in xrange(len(results)):
     #        print i
         cv2.imshow("Result" + str(i), result)
