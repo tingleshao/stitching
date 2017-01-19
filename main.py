@@ -7,7 +7,15 @@ import argparse
 #TODO: try using a bundle adjustment method and see the differences
 
 
+
+def stitch_all_images_bundle(images, width, height, ratio=0.75, reprojThresh=4.0, showMatches=False):
+    result = None
+    return result 
+
+
 def stitch_all_images(images, width, height, ratio=0.75, reprojThresh=4.0, showMatches=False):
+    # width; number of microcameras per row
+    # height: number of microcameras per column
     print "stitching all..."
     num_of_images = len(images)
     rows = []
